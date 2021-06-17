@@ -9,7 +9,7 @@ import io.vertx.core.eventbus.ReplyFailure;
 import io.vertx.core.json.JsonObject;
 
 public class PublisherVerticle extends AbstractVerticle {
-
+    
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
         EventBus eventBus = vertx.eventBus();
@@ -59,8 +59,5 @@ public class PublisherVerticle extends AbstractVerticle {
             
             startPromise.complete();
         });
-    }
-    
-    
-    
+    }    
 }
