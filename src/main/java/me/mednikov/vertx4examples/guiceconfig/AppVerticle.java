@@ -17,8 +17,12 @@ class AppVerticle extends AbstractVerticle {
 
     private static final Logger logger = Logger.getLogger("AppVerticle");
 
-    @Inject @Named("ConfigRetriever")
     private ConfigRetriever configRetriever;
+
+    @Inject
+    AppVerticle(@Named("ConfigRetriever") ConfigRetriever configRetriever){
+        this.configRetriever = configRetriever;
+    }
 
     @Override
     public void start(Promise<Void> startPromise) throws Exception {

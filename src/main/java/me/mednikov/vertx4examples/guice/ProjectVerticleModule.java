@@ -6,10 +6,7 @@ class ProjectVerticleModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        ProjectClient client = new ProjectClientImpl();
-        ProjectRepository repository = new ProjectRepositoryImpl();
-
-        bind(ProjectClient.class).toInstance(client);
-        bind(ProjectRepository.class).toInstance(repository);
+        bind(ProjectClient.class).to(ProjectClientImpl.class);
+        bind(ProjectRepository.class).to(ProjectRepositoryImpl.class);
     }
 }
