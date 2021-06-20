@@ -6,6 +6,7 @@ import com.google.inject.Injector;
 import com.google.inject.name.Named;
 import io.vertx.config.ConfigRetriever;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -21,28 +22,25 @@ class AppVerticle extends AbstractVerticle {
 
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
-        configRetriever.getConfig(config -> {
-            if (config.succeeded()){
-                logger.info("Configuration obtained...");
-                JsonObject conf = config.result();
 
-                Injector injector = Guice.createInjector(new ProjectVerticleModule(vertx, conf));
-                ProjectVerticle projectVerticle = injector.getInstance(ProjectVerticle.class);
-
-                vertx.deployVerticle(projectVerticle, result -> {
-                    if (result.succeeded()) {
-                        logger.info("ProjectVerticle deployed...");
-                        startPromise.complete();
-                    } else {
-                        logger.warning("Unable to deploy ProjectVerticle");
-                        startPromise.fail(result.cause());
-                    }
-                });
-            } else {
-                logger.warning("Unable to obtain configuration...");
-                logger.warning(config.cause().getMessage());
-                startPromise.fail(config.cause());
-            }
+        Future<JsonObject> cr = configRetriever.getConfig();
+        Future<ProjectVerticle> vert = cr.map(c -> {
+            logger.info("Configuration obtained successfully");
+            Injector injector = Guice.createInjector(new ProjectVerticleModule(vertx, c));
+            ProjectVerticle verticle = injector.getInstance(ProjectVerticle.class);
+            return verticle;
+        }).onFailure(err -> {
+            logger.warning("Unable to obtain configuration");
+            startPromise.fail(err);
+        });
+        Future<String> dr = vert.compose(v -> vertx.deployVerticle(v));
+        dr.onSuccess(id -> {
+            logger.info("ProjectVerticle deployed");
+            startPromise.complete();
+        }).onFailure(err -> {
+            logger.warning("Unable to deploy ProjectVerticle");
+            logger.warning(err.getMessage());
+            startPromise.fail(err);
         });
     }
 
@@ -50,21 +48,15 @@ class AppVerticle extends AbstractVerticle {
         Vertx vertx = Vertx.vertx();
         Injector injector = Guice.createInjector(new AppVerticleModule(vertx));
         AppVerticle appVerticle = injector.getInstance(AppVerticle.class);
-        vertx.deployVerticle(appVerticle, result -> {
-            if (result.succeeded()){
-                logger.info("AppVerticle started...");
-                vertx.close(result2 -> {
-                    if (result2.succeeded()) {
-                        logger.info("Vertx stopped");
-                    } else {
-                        logger.warning("Unable to close Vertx");
-                        logger.warning(result2.cause().getMessage());
-                    }
-                });
-            } else {
-                logger.warning("Unable to deploy AppVerticle");
-                logger.warning(result.cause().getMessage());
-            }
+        Future<String> dr = vertx.deployVerticle(appVerticle);
+        dr.onSuccess(id -> logger.info("AppVerticle started..."))
+        .onFailure(err -> {
+            logger.warning("Unable to start AppVerticle");
+            logger.warning(err.getMessage());
+        })
+        .onComplete(r -> {
+            vertx.close();
+            logger.info("Vertx closed");
         });
 
     }
