@@ -2,6 +2,7 @@ package me.mednikov.vertx4examples.guice;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -17,16 +18,17 @@ class ProjectVerticleTest {
         ProjectVerticleModule module = new ProjectVerticleModule();
         Injector injector = Guice.createInjector(module);
         ProjectVerticle verticle = injector.getInstance(ProjectVerticle.class);
-        vertx.deployVerticle(verticle, result -> context.verify(
-                () -> {
-                    String clientName = verticle.getProjectClientName();
-                    String repositoryName = verticle.getProjectRepositoryName();
+        Future<String> deploy = vertx.deployVerticle(verticle);
+        deploy.onComplete(id -> {
+            context.verify(() -> {
+                String client = verticle.getProjectClientName();
+                String repository = verticle.getProjectRepositoryName();
 
-                    Assertions.assertThat(clientName).isEqualTo("ProjectClientImpl");
-                    Assertions.assertThat(repositoryName).isEqualTo("ProjectRepositoryImpl");
+                Assertions.assertThat(client).isEqualTo("ProjectClientImpl");
+                Assertions.assertThat(repository).isEqualTo("ProjectRepositoryImpl");
 
-                    context.completeNow();
-                }
-        ));
+                context.completeNow();
+            });
+        }).onFailure(err -> context.failNow(err));
     }
 }
