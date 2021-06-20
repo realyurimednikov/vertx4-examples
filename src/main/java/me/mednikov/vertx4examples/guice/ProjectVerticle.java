@@ -6,8 +6,14 @@ import io.vertx.core.Promise;
 
 class ProjectVerticle extends AbstractVerticle {
 
-    @Inject private ProjectClient client;
-    @Inject private ProjectRepository repository;
+    private ProjectClient client;
+    private ProjectRepository repository;
+
+    @Inject
+    ProjectVerticle(ProjectClient client, ProjectRepository repository){
+        this.client = client;
+        this.repository = repository;
+    }
 
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
