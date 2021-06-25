@@ -19,7 +19,7 @@ class AppVerticle extends AbstractVerticle {
     public static void main(String[] args) {
 
         Vertx vertx = Vertx.vertx();
-        vertx.deployVerticle(new DataVerticle(Nitrite.builder().openOrCreate()));
+        vertx.deployVerticle(new DataVerticle(new ProjectDaoImpl(Nitrite.builder().openOrCreate())));
         vertx.deployVerticle(new RouterVerticle());
     }
 }
