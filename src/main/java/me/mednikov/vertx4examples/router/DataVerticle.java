@@ -1,5 +1,6 @@
 package me.mednikov.vertx4examples.router;
 
+import com.google.inject.Inject;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonArray;
@@ -13,6 +14,7 @@ class DataVerticle extends AbstractVerticle {
 //    private final NitriteCollection collection;
     private ProjectDao dao;
 
+    @Inject
     DataVerticle(ProjectDao dao){
         this.dao = dao;
 //        this.collection = nitrite.getCollection("projects");

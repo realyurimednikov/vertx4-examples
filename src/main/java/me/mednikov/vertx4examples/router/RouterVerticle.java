@@ -13,10 +13,6 @@ import io.vertx.ext.web.handler.BodyHandler;
 
 class RouterVerticle extends AbstractVerticle {
 
-    RouterVerticle(){
-
-    }
-
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
         HttpServerOptions serverOptions = new HttpServerOptions();
