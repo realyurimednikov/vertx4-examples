@@ -16,8 +16,9 @@ class RouterVerticle extends AbstractVerticle {
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
         HttpServerOptions serverOptions = new HttpServerOptions();
+        serverOptions.setPort(8080);
 
-        HttpServer server = vertx.createHttpServer();
+        HttpServer server = vertx.createHttpServer(serverOptions);
 
         Router router = Router.router(vertx);
 
@@ -30,7 +31,7 @@ class RouterVerticle extends AbstractVerticle {
 
         server.requestHandler(router);
 
-        Future<HttpServer> result = server.listen(8080);
+        Future<HttpServer> result = server.listen();
         result.onSuccess(r -> startPromise.complete())
                 .onFailure(e -> startPromise.fail(e));
     }
