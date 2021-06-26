@@ -38,10 +38,27 @@ class NitriteTest {
         if (iterator.hasNext()){
             NitriteId id = iterator.next();
             Assertions.assertThat(id).isNotNull();
-            logger.info(id.toString());
+            logger.info(id.getIdValue().toString());
         } else {
             Assertions.fail("No ids");
         }
+    }
+
+    @Test
+    void updateTest(){
+        NitriteCollection collection = nitrite.getCollection("my-collection");
+        Document document = new Document();
+        document.put("name", "John Doe");
+        document.put("email", "john.doe@email.com");
+        WriteResult ir = collection.insert(document);
+        long iid = ir.iterator().next().getIdValue();
+
+        Document update = new Document();
+        update.put("name", "Not John Doe anymore");
+        WriteResult ur = collection.update(Filters.eq("email", "john.doe@email.com"), update);
+        long uid = ur.iterator().next().getIdValue();
+
+        Assertions.assertThat(iid).isEqualTo(uid);
     }
 
     @Test
@@ -64,17 +81,32 @@ class NitriteTest {
     }
 
     @Test
-    void findTest(){
+    void selectTest(){
         NitriteCollection collection = nitrite.getCollection("my-collection");
         Document document = new Document();
         document.put("name", "John Doe");
         document.put("email", "john.doe@email.com");
         collection.insert(document);
 
-        Cursor cursor = collection.find(Filters.eq("name", "John Doe"));
-        Assertions.assertThat(cursor.totalCount()).isEqualTo(1);
-        Document result = cursor.firstOrDefault();
+        Cursor cursor = collection.find(Filters.eq("email", "john.doe@email.com"));
+        List<Document> list = cursor.toList();
+        Assertions.assertThat(list).hasSize(1);
+        Document d = list.get(0);
+        Assertions.assertThat(d.get("name").toString()).isEqualTo("John Doe");
+        Assertions.assertThat(d.get("email").toString()).isEqualTo("john.doe@email.com");
+        Assertions.assertThat(d.getId().toString()).isNotNull().isNotEmpty();
+    }
 
+    @Test
+    void findOneTest(){
+        NitriteCollection collection = nitrite.getCollection("my-collection");
+        Document document = new Document();
+        document.put("name", "John Doe");
+        document.put("email", "john.doe@email.com");
+        WriteResult ir = collection.insert(document);
+        NitriteId iid = ir.iterator().next();
+
+        Document result = collection.getById(iid);
         Assertions.assertThat(result.get("email").toString()).isEqualTo("john.doe@email.com");
     }
 
@@ -89,14 +121,10 @@ class NitriteTest {
         if (iterator.hasNext()){
             NitriteId id = iterator.next();
             Assertions.assertThat(id).isNotNull();
-            logger.info(id.toString());
-
-            // remove
             collection.remove(Filters.eq("email", "john.doe@email.com"));
             Cursor cursor = collection.find();
             List<Document> list = cursor.toList();
             Assertions.assertThat(list).isEmpty();
-
         } else {
             Assertions.fail("No ids");
         }
