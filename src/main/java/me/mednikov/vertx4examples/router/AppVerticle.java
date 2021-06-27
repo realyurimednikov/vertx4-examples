@@ -2,10 +2,7 @@ package me.mednikov.vertx4examples.router;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Future;
-import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 
 import java.util.logging.Logger;
 
@@ -17,7 +14,9 @@ class AppVerticle extends AbstractVerticle {
     public void start(Promise<Void> startPromise) throws Exception {
         Injector injector = Guice.createInjector(new AppModule());
         DataVerticle dataVerticle = injector.getInstance(DataVerticle.class);
-        Future<String> dvr = vertx.deployVerticle(dataVerticle);
+        DeploymentOptions dataVerticleOptions = new DeploymentOptions();
+        dataVerticleOptions.setWorker(true);
+        Future<String> dvr = vertx.deployVerticle(dataVerticle, dataVerticleOptions);
         Future<String> rvr = dvr.compose(r -> vertx.deployVerticle(new RouterVerticle()));
         rvr.onSuccess(r -> startPromise.complete()).onFailure(e -> startPromise.fail(e));
     }
