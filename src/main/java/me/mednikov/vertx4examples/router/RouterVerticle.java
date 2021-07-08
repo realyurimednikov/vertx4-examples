@@ -25,9 +25,9 @@ class RouterVerticle extends AbstractVerticle {
         router.route("/*").handler(BodyHandler.create());
 
         router.post("/projects").consumes("application/json").produces("application/json").handler(this::createProject);
-        router.get("/projects").handler(this::getAllProjects);
-        router.get("/project/:id").handler(this::getProject);
-        router.delete("/project/:id").handler(this::deleteProject);
+        router.get("/projects").consumes("application/json").produces("application/json").handler(this::getAllProjects);
+        router.get("/project/:id").consumes("application/json").produces("application/json").handler(this::getProject);
+        router.delete("/project/:id").consumes("application/json").produces("application/json").handler(this::deleteProject);
 
         server.requestHandler(router);
 
