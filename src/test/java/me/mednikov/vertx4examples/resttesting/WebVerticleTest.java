@@ -8,10 +8,12 @@ import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import me.mednikov.vertx4examples.commons.PostModel;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import static org.junit.jupiter.api.Assertions.*;
+
 
 @ExtendWith(VertxExtension.class)
 class WebVerticleTest {
@@ -33,10 +35,10 @@ class WebVerticleTest {
                 .sendJson(payload)
                 .onSuccess(result -> {
                     JsonObject body = result.bodyAsJsonObject();
-                    Assertions.assertThat(body.getInteger("id")).isEqualTo(1);
-                    Assertions.assertThat(body.getString("title")).isEqualTo(payload.getTitle());
-                    Assertions.assertThat(body.getString("body")).isEqualTo(payload.getBody());
-                    Assertions.assertThat(body.getInteger("userId")).isEqualTo(payload.getUserId());
+                    assertEquals(1, body.getInteger("id"));
+                    assertEquals(payload.getTitle(), body.getString("title"));
+                    assertEquals(payload.getBody(), body.getString("body"));
+                    assertEquals(payload.getUserId(), body.getInteger("userId"));
                     context.completeNow();
                 })
                 .onFailure(context::failNow);

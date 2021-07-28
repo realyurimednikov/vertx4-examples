@@ -10,11 +10,13 @@ import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import me.mednikov.vertx4examples.commons.PostModel;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.logging.Logger;
+
+import static org.junit.jupiter.api.Assertions.*;
+
 
 @ExtendWith(VertxExtension.class)
 class WebClientTest {
@@ -25,7 +27,7 @@ class WebClientTest {
     @Test
     void createWebClientTest(Vertx vertx, VertxTestContext context){
         WebClient client = WebClient.create(vertx);
-        Assertions.assertThat(client).isNotNull();
+        assertNotNull(client);
         context.completeNow();
     }
 
@@ -39,7 +41,7 @@ class WebClientTest {
             result
                     .flatMap(buffer -> Future.succeededFuture(buffer.bodyAsJsonArray()))
                     .onSuccess(posts -> {
-                        Assertions.assertThat(posts.size()).isEqualTo(100);
+                        assertEquals(100, posts.size());
                         context.completeNow();
                     }).onFailure(context::failNow);
         });
@@ -59,7 +61,7 @@ class WebClientTest {
             var result = client.postAbs(url).sendJsonObject(payload);
             result.onSuccess(response -> {
                         JsonObject body = response.bodyAsJsonObject();
-                        Assertions.assertThat(body.getInteger("id")).isEqualTo(101);
+                        assertEquals(101, body.getInteger("id"));
                         context.completeNow();
                     })
                     .onFailure(context::failNow);
@@ -76,7 +78,7 @@ class WebClientTest {
             var result = client.postAbs(url).sendJson(post);
             result.onSuccess(response -> {
                         PostModel body = response.bodyAsJson(PostModel.class);
-                        Assertions.assertThat(body.getId()).isEqualTo(101);
+                        assertEquals(101, body.getId());
                         context.completeNow();
                     })
                     .onFailure(context::failNow);
