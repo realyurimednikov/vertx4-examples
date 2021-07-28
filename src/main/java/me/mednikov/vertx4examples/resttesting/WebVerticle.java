@@ -1,7 +1,6 @@
 package me.mednikov.vertx4examples.resttesting;
 
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
@@ -15,13 +14,10 @@ import org.eclipse.collections.api.factory.Lists;
 import org.eclipse.collections.api.list.MutableList;
 
 import java.util.Optional;
-import java.util.logging.Logger;
 
 class WebVerticle extends AbstractVerticle {
 
     private MutableList<PostModel> posts;
-
-    private Logger logger = Logger.getLogger("WebVerticle");
 
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
@@ -39,7 +35,7 @@ class WebVerticle extends AbstractVerticle {
 
         router.route("/*").handler(BodyHandler.create());
 
-        router.post("/posts").handler(ctx -> {
+        router.post("/posts").consumes("application/json").produces("application/json").handler(ctx -> {
             PostModel post = Json.decodeValue(ctx.getBody(), PostModel.class);
             int id = posts.size() + 1;
             post.setId(id);
@@ -48,7 +44,6 @@ class WebVerticle extends AbstractVerticle {
         });
 
         router.get("/posts").produces("application/json").handler(ctx->{
-            System.out.println("Hello world");
             JsonArray json = new JsonArray();
             posts.forEach(post -> {
                 JsonObject jo = JsonObject.mapFrom(post);
@@ -57,7 +52,7 @@ class WebVerticle extends AbstractVerticle {
             ctx.response().setStatusCode(200).end(json.encode());
         });
 
-        router.get("/post/:id").handler(ctx->{
+        router.get("/post/:id").produces("application/json").handler(ctx->{
             Integer id = Integer.getInteger(ctx.pathParam("id"));
             Optional<PostModel> result = posts.detectOptional(p -> p.getId() == id);
             result.ifPresentOrElse(data -> {
@@ -73,16 +68,7 @@ class WebVerticle extends AbstractVerticle {
         });
 
         server.requestHandler(router);
-
-        Future<HttpServer> result = server.listen();
-        result.onSuccess(r -> {
-                    logger.info("WebVerticle is up and running on port " + Integer.toString(server.actualPort()));
-                    startPromise.complete();
-                })
-                .onFailure(e -> {
-                    logger.warning(e.getLocalizedMessage());
-                    startPromise.fail(e);
-                });
+        server.listen().onSuccess(r -> startPromise.complete()).onFailure(startPromise::fail);
     }
 
 }
